@@ -16,6 +16,7 @@
 # Third-party Imports
 from boto.ec2 import get_region
 from boto.ec2 import EC2Connection
+from boto.ec2.networkinterface import  NetworkInterfaceSpecification, NetworkInterfaceCollection
 
 # Cloudify Imports
 from ec2 import utils
@@ -51,4 +52,23 @@ class EC2ConnectionClient():
     def _get_aws_config_property(self):
         node_properties = \
             utils.get_instance_or_source_node_properties()
-        return node_properties[constants.AWS_CONFIG_PROPERTY]
+        return node_properties[constants.AWS_CONFIG_PROPERTY] 
+
+def EC2NetworkInterfaceCollection( interface_list):
+     
+	 myinterface_list=[]
+	 for one_interface  in interface_list:
+	     if one_interface:
+		     subnet_id,private_ip_address, private_ip_addresses, secondary_private_ip_address_count=one_interface
+		 else:
+		     subnet_id,private_ip_address, private_ip_addresses, secondary_private_ip_address_count=None,None,None,None
+			 
+         myinterface_list.append(NetworkInterfaceSpecification(network_interface_id=None, 
+		         device_index=None,
+                 subnet_id=subnet_id, description=None, private_ip_address=private_ip_address,
+                 groups=None, delete_on_termination=None,
+                 private_ip_addresses=private_ip_addresses,
+                 secondary_private_ip_address_count=secondary_private_ip_address_count,
+                 associate_public_ip_address=None
+        ))
+     return NetworkInterfaceCollection(myinterface_list)		

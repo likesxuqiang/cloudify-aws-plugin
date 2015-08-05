@@ -443,12 +443,14 @@ def _get_instance_parameters():
     if provider_variables.get('agents_security_group'):
         attached_group_ids.append(
             provider_variables['agents_security_group'])
-
+			
+	interfaces= connection.EC2NetworkInterfaceCollection(ctx.node.properties['network_interfaces'])
     parameters = {
         'image_id': ctx.node.properties['image_id'],
         'instance_type': ctx.node.properties['instance_type'],
         'security_group_ids': attached_group_ids,
-        'key_name': _get_instance_keypair(provider_variables)
+        'key_name': _get_instance_keypair(provider_variables),
+		'network_interfaces':interfaces,	
     }
 
     parameters.update(ctx.node.properties['parameters'])

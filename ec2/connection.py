@@ -56,19 +56,19 @@ class EC2ConnectionClient():
 
 def EC2NetworkInterfaceCollection( interface_list):
      
-	 myinterface_list=[]
-	 for one_interface  in interface_list:
-	     if one_interface:
-		     subnet_id,private_ip_address, private_ip_addresses, secondary_private_ip_address_count=one_interface
-		 else:
-		     subnet_id,private_ip_address, private_ip_addresses, secondary_private_ip_address_count=None,None,None,None
+    myinterface_list=[]
+    for one_interface  in interface_list:
+        if one_interface:
+            subnet_id,private_ip_address, private_ip_addresses, secondary_private_ip_address_count=one_interface
+        else:
+            subnet_id,private_ip_address, private_ip_addresses, secondary_private_ip_address_count=None,None,None,None
 			 
-         myinterface_list.append(NetworkInterfaceSpecification(network_interface_id=None, 
-		         device_index=None,
+        myinterface_list.append(NetworkInterfaceSpecification(network_interface_id=None, 
+    	         device_index=None,
                  subnet_id=subnet_id, description=None, private_ip_address=private_ip_address,
                  groups=None, delete_on_termination=None,
                  private_ip_addresses=private_ip_addresses,
                  secondary_private_ip_address_count=secondary_private_ip_address_count,
                  associate_public_ip_address=None
         ))
-     return NetworkInterfaceCollection(myinterface_list)		
+    return NetworkInterfaceCollection(myinterface_list)		

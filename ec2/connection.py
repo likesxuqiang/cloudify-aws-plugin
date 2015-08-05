@@ -60,6 +60,14 @@ def EC2NetworkInterfaceCollection( interface_list):
     for one_interface  in interface_list:
         if one_interface:
             subnet_id,private_ip_address, private_ip_addresses, secondary_private_ip_address_count=one_interface
+            if not subnet_id or subnet_id=="None":
+                subnet_id=None
+            if not private_ip_address or private_ip_address=="None":
+                private_ip_address=None
+            if not private_ip_addresses or private_ip_addresses=="None":
+                private_ip_addresses=None
+            if not secondary_private_ip_address_count or secondary_private_ip_address_count=="None":
+                secondary_private_ip_address_count=None
         else:
             subnet_id,private_ip_address, private_ip_addresses, secondary_private_ip_address_count=None,None,None,None
 			 

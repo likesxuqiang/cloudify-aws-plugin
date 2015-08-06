@@ -31,6 +31,9 @@ node_types:
         description: >
           The instance's size.
         type: string
+      network_interfaces:
+        description: network interfaces
+        type: list
       parameters:
         description: >
           The key value pair parameters allowed by Amazon API to the

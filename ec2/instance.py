@@ -15,11 +15,13 @@
 
 # Third-party Imports
 import boto.exception
+from boto.ec2.networkinterface import  NetworkInterfaceSpecification, NetworkInterfaceCollection
 
 # Cloudify imports
 from ec2 import utils
 from ec2 import constants
 from ec2 import connection
+
 from cloudify import ctx
 from cloudify.exceptions import NonRecoverableError
 from cloudify.decorators import operation
@@ -55,23 +57,25 @@ def creation_validation(**_):
 @operation
 def run_instances(**_):
     ec2_client = connection.EC2ConnectionClient().client()
-
+    ctx.logger.debug("connection.EC2ConnectionClient().client()")
+    
     for property_name in constants.INSTANCE_REQUIRED_PROPERTIES:
         utils.validate_node_property(property_name, ctx.node.properties)
-
+    ctx.logger.debug(str(ctx.node.properties))
+    
     if _create_external_instance():
         return
-
+    
     instance_parameters = _get_instance_parameters()
 
     ctx.logger.debug(
         'Attempting to create EC2 Instance with these API parameters: {0}.'
-        .format(instance_parameters))
+        .format(str(instance_parameters)))
 
     instance_id = _run_instances_if_needed(ec2_client, instance_parameters)
 
     instance = _get_instance_from_id(instance_id)
-
+    
     if instance is None:
         return ctx.operation.retry(
             message='Waiting to verify that instance {0} '
@@ -238,11 +242,15 @@ def _run_instances_if_needed(ec2_client, instance_parameters):
 def _get_instances_from_reservation_id(ec2_client):
 
     try:
-        reservations = ec2_client.get_all_instances(
-            filters={
+        if ctx.instance.runtime_properties.has_key('reservation_id'):
+            filter_s={
                 'reservation-id':
                     ctx.instance.runtime_properties['reservation_id']
-            })
+            }
+        else:
+            filter_s={}
+        reservations = ec2_client.get_all_instances(
+            filters=filter_s)
     except (boto.exception.EC2ResponseError,
             boto.exception.BotoServerError) as e:
         raise NonRecoverableError('{0}'.format(str(e)))
@@ -444,17 +452,31 @@ def _get_instance_parameters():
         attached_group_ids.append(
             provider_variables['agents_security_group'])
 			
-	interfaces= connection.EC2NetworkInterfaceCollection(ctx.node.properties['network_interfaces'])
     parameters = {
         'image_id': ctx.node.properties['image_id'],
         'instance_type': ctx.node.properties['instance_type'],
         'security_group_ids': attached_group_ids,
-        'key_name': _get_instance_keypair(provider_variables),
-		'network_interfaces':interfaces,	
+        'key_name': _get_instance_keypair(provider_variables)
     }
-
+    ctx.logger.info('network_interfaces_list.'+str(ctx.node.properties['parameters']))
+    if ctx.node.properties['parameters'].has_key('network_interfaces'):
+        network_interfaces_str=ctx.node.properties['parameters']['network_interfaces']
+        if isinstance(network_interfaces_str, str):
+            import json
+            network_interfaces_list=json.loads(network_interfaces_str)
+        else:
+            network_interfaces_list=network_interfaces_str
+        ctx.logger.info('network_interfaces_list.  '+str(type(network_interfaces_list)))
+        interfaces=[ NetworkInterfaceSpecification(**one) for one in network_interfaces_list ]
+        
+        ctx.logger.info('interfaces.  '+ str(type(interfaces)))
+        ctx.logger.info('interfaces.'+str(interfaces))
+        
+        mynetwork_iterfaces=NetworkInterfaceCollection(*interfaces)
+            
     parameters.update(ctx.node.properties['parameters'])
-
+    parameters['network_interfaces']=mynetwork_iterfaces
+    ctx.logger.info('parameters.'+str(parameters))
     return parameters
 
 

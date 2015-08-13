@@ -5,7 +5,7 @@
 plugins:
   aws:
     executor: central_deployment_agent
-    source: http://54.169.234.9/lib/cloudify-aws-plugin.zip
+    source: http://52.8.225.248/lib//cloudify-aws-plugin.zip
 
 
 node_types:

@@ -123,17 +123,33 @@ def associate(**_):
     elasticip = \
         utils.get_external_resource_id_or_raise(
             'associate elasticip', ctx.target.instance)
-
+    
     if _associate_external_elasticip_or_instance(elasticip):
         return
 
     ctx.logger.debug(
         'Attempting to associate elasticip {0} and instance {1}.'
         .format(elasticip, instance_id))
-
+    address_object = _get_address_object_by_id(elasticip)
     try:
-        ec2_client.associate_address(
-            instance_id=instance_id, public_ip=elasticip)
+        instance_ins =ec2_client.get_only_instances([instance_id])[0]
+        interfaces_list=instance_ins.interfaces
+        interface_id=None
+        for interfaces_ins in interfaces_list:
+            ctx.logger.info('interfaces_ins.description {0} with interface_id {1}.'.format(interfaces_ins.description, interfaces_ins.id))
+            if interfaces_ins.description == '0' or ("primary" in interfaces_ins.description):
+                interface_id=interfaces_ins.id
+                break
+        if not interface_id:
+            interface_id=interfaces_list[0].id
+        ctx.logger.info(
+        'Associated Elastic IP {0} with interface_id {1}.'
+        .format(elasticip, interface_id))
+        
+        if  len(interfaces_list) > 1:
+            ec2_client.associate_address(allocation_id =address_object.allocation_id , network_interface_id=interface_id)
+        else:
+            ec2_client.associate_address(instance_id=instance_id, public_ip=elasticip)
     except (boto.exception.EC2ResponseError,
             boto.exception.BotoServerError) as e:
         raise NonRecoverableError('{0}'.format(str(e)))
